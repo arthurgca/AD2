@@ -21,86 +21,37 @@ library(caret)
 
 ```{r}
 dados_eleicoes <- read.csv("eleicoes2014.csv", encoding="latin1")
-dados_eleicoes <- dados_eleicoes %>% select(-cargo)
+dados_eleicoes <- dados_eleicoes %>% select(-cargo, -sequencial_candidato, -numero_cadidato, -nome, -setor_economico_receita, -setor_economico_despesa)
 ```
 
 
 O processo de reamostragem pode ser feito usando k-fold cross-validation, leave-one-out cross-validation ou bootstrapping.
 
 ```{r}
-fitControl <- trainControl(## 10-fold CV
-                           method = "cv", # boot", "boot632", "cv", "repeatedcv", "LOOCV", "LGOCV"
-                           number = 10,
-                           ## repeated ten times
-                           repeats = 10)
 
-model.cv <- train(mpg ~ ., 
-               data = mtcars,
-               method = "lasso",
-               trControl = fitControl)
-
-model.cv
-```
-
-# Adicionando pre-processamento
-
-```{r}
-model.cv <- train(mpg ~ ., 
-               data = mtcars,
-               method = "lasso",
-               trControl = fitControl,
-               preProcess = c('scale', 'center', 'nzv')) # default: sem pre-processamento
-
-# Center: subtrai a média do valor 
-# scale: normaliza os dados (deixa na mesma escala)
-
-?train
-model.cv
-```
-
-# Encontrando parâmetros do modelo
-
-Podemos testar vários parâmetros para o modelo através da função expand.grid()
-
-O método ridge tende a aproximar os coeficientes das variáveis preditoras de 0, conforme o lambda aumenta. Isso diminui a flexibilidade do modelo, diminuindo também a variância, porém aumentando o BIAS. A ideia por trás da regressão Ridge é encontrar um lambda que gere um trade-off satisfatório entre BIAS e Variância.
-
-```{r}
 lambdaGrid <- expand.grid(lambda = 10^seq(10, -2, length=100))
 
-model.cv <- train(mpg ~ ., 
-               data = mtcars,
-               method = "ridge",
-               trControl = fitControl,
-               preProcess = c('scale', 'center'),
-               tuneGrid = lambdaGrid,
-               na.action = na.omit)   #ignora os NAs
-
-model.cv
-```
-
-Podemos utilizar uma busca aleatória de parâmetros com search = "random" no trainControl.
-
-```{r}
 fitControl <- trainControl(## 10-fold CV
                            method = "repeatedcv", 
                            number = 10,
                            repeats = 10,
                            search = "random")  # busca aleatória de hiperparâmetros
 
-model.cv <- train(mpg ~ ., 
-               data = mtcars,
+model.cv <- train(votos ~ ., 
+               data = dados_eleicoes,
                method = "ridge",
                trControl = fitControl,
-               preProcess = c('scale', 'center'),
+               tuneGrid = lambdaGrid,
+               preProcess = c('scale', 'center', 'nzv'),
                na.action = na.omit)
 
 model.cv
 ```
 
-# Importância das variáveis
 
 ```{r}
 ggplot(varImp(model.cv))
+ggplot(model.cv)
 ```
 
 # Predições
@@ -109,5 +60,6 @@ ggplot(varImp(model.cv))
 predictions <- predict(model.cv, mtcars)
 
 predictions
+```
 ```
 
