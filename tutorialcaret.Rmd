@@ -23,20 +23,18 @@ library(caret)
 dados_eleicoes <- read.csv("eleicoes2014.csv", encoding="latin1")
 ```
 
-
-# A função train()
-train() é a função que utilizamos para treinar o modelo. É também uma função núcleo do caret.
-
 ```{r}
 library(caret)
+
+dados_eleicoes <- dados_eleicoes %>% select(-cargo)
 
 # modelo de regressão linear simples
 model <- train(votos ~ total_despesa, 
                data = dados_eleicoes,
-               method = "lm", na.action = na.omit)
+               method = "lm")
 
 # modelo de regressão linear múltipla
-model <- train(votos ~ . -cargo -sequencial_candidato -nome -numero_cadidato -setor_economico_receita -setor_economico_despesa, 
+model <- train(votos ~ ., 
                data = dados_eleicoes,
                method = "lm", na.action = na.omit)
 
