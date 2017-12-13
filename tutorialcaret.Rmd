@@ -21,30 +21,9 @@ library(caret)
 
 ```{r}
 dados_eleicoes <- read.csv("eleicoes2014.csv", encoding="latin1")
-```
-
-```{r}
-library(caret)
-
 dados_eleicoes <- dados_eleicoes %>% select(-cargo)
-
-# modelo de regressão linear simples
-model <- train(votos ~ total_despesa, 
-               data = dados_eleicoes,
-               method = "lm")
-
-# modelo de regressão linear múltipla
-model <- train(votos ~ ., 
-               data = dados_eleicoes,
-               method = "lm", na.action = na.omit)
-
-# modelo utilizando regressão ridge
-model <- train(votos ~ ., 
-               data = dados_eleicoes,
-               method = "ridge", na.action = na.omit) # pode ser 'lasso'
-
 ```
-# K-fold cross-validation
+
 
 O processo de reamostragem pode ser feito usando k-fold cross-validation, leave-one-out cross-validation ou bootstrapping.
 
