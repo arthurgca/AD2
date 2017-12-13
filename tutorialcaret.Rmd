@@ -1,0 +1,136 @@
+---
+title: "Tutorial Caret"
+author: "Luiz Fonseca"
+date: "5 de dezembro de 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Caret é a abreviação para Classification And REgression Training.
+
+# Instalação
+
+```{r, eval=FALSE}
+library(tidyr)
+library(dplyr)
+library(caret)
+```
+
+```{r}
+dados_eleicoes <- read.csv("eleicoes2014.csv", encoding="latin1")
+```
+
+
+# A função train()
+train() é a função que utilizamos para treinar o modelo. É também uma função núcleo do caret.
+
+```{r}
+library(caret)
+
+# modelo de regressão linear simples
+model <- train(votos ~ total_despesa, 
+               data = dados_eleicoes,
+               method = "lm", na.action = na.omit)
+
+# modelo de regressão linear múltipla
+model <- train(votos ~ . -cargo -sequencial_candidato -nome -numero_cadidato -setor_economico_receita -setor_economico_despesa, 
+               data = dados_eleicoes,
+               method = "lm", na.action = na.omit)
+
+# modelo utilizando regressão ridge
+model <- train(votos ~ ., 
+               data = dados_eleicoes,
+               method = "ridge", na.action = na.omit) # pode ser 'lasso'
+
+```
+# K-fold cross-validation
+
+O processo de reamostragem pode ser feito usando k-fold cross-validation, leave-one-out cross-validation ou bootstrapping.
+
+```{r}
+fitControl <- trainControl(## 10-fold CV
+                           method = "cv", # boot", "boot632", "cv", "repeatedcv", "LOOCV", "LGOCV"
+                           number = 10,
+                           ## repeated ten times
+                           repeats = 10)
+
+model.cv <- train(mpg ~ ., 
+               data = mtcars,
+               method = "lasso",
+               trControl = fitControl)
+
+model.cv
+```
+
+# Adicionando pre-processamento
+
+```{r}
+model.cv <- train(mpg ~ ., 
+               data = mtcars,
+               method = "lasso",
+               trControl = fitControl,
+               preProcess = c('scale', 'center', 'nzv')) # default: sem pre-processamento
+
+# Center: subtrai a média do valor 
+# scale: normaliza os dados (deixa na mesma escala)
+
+?train
+model.cv
+```
+
+# Encontrando parâmetros do modelo
+
+Podemos testar vários parâmetros para o modelo através da função expand.grid()
+
+O método ridge tende a aproximar os coeficientes das variáveis preditoras de 0, conforme o lambda aumenta. Isso diminui a flexibilidade do modelo, diminuindo também a variância, porém aumentando o BIAS. A ideia por trás da regressão Ridge é encontrar um lambda que gere um trade-off satisfatório entre BIAS e Variância.
+
+```{r}
+lambdaGrid <- expand.grid(lambda = 10^seq(10, -2, length=100))
+
+model.cv <- train(mpg ~ ., 
+               data = mtcars,
+               method = "ridge",
+               trControl = fitControl,
+               preProcess = c('scale', 'center'),
+               tuneGrid = lambdaGrid,
+               na.action = na.omit)   #ignora os NAs
+
+model.cv
+```
+
+Podemos utilizar uma busca aleatória de parâmetros com search = "random" no trainControl.
+
+```{r}
+fitControl <- trainControl(## 10-fold CV
+                           method = "repeatedcv", 
+                           number = 10,
+                           repeats = 10,
+                           search = "random")  # busca aleatória de hiperparâmetros
+
+model.cv <- train(mpg ~ ., 
+               data = mtcars,
+               method = "ridge",
+               trControl = fitControl,
+               preProcess = c('scale', 'center'),
+               na.action = na.omit)
+
+model.cv
+```
+
+# Importância das variáveis
+
+```{r}
+ggplot(varImp(model.cv))
+```
+
+# Predições
+
+```{r}
+predictions <- predict(model.cv, mtcars)
+
+predictions
+```
+

@@ -1,0 +1,24 @@
+---
+title: "Tarefa AD2"
+author: "Arthur Gurjão"
+date: "30 de outubro de 2017"
+output: html_document
+---
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+```
+
+
+```{r}
+dados_ceap <- read.csv("dadosCEAP.csv")
+```
+
+#Perguntas
+
+###1 - 
+
+
+
