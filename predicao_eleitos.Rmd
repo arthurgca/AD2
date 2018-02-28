@@ -1,0 +1,23 @@
+---
+title: "Predição de Deputados Eleitos 2014"
+author: "Arthur Gurjão"
+date: "05 de março de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Regressão logística
+
+```{r}
+library(caret)
+library(tidyr)
+library(dplyr)
+```
+
+```{r}
+treino <- read.csv("train.csv", encoding="latin1")
+teste <- read.csv("test.csv", encoding="latin1")
+```
