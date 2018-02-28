@@ -21,3 +21,8 @@ library(dplyr)
 treino <- read.csv("train.csv", encoding="latin1")
 teste <- read.csv("test.csv", encoding="latin1")
 ```
+
+```{r}
+discretize(treino$UF, method = "interval", categories = 27)
+```
+
